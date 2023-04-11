@@ -49,6 +49,13 @@ Plug 'neovim/nvim-lspconfig'
 " File tree
 Plug 'nvim-tree/nvim-tree.lua'
 
+" Auto closing
+Plug 'windwp/nvim-autopairs'
+
+" HTML closing
+Plug 'alvan/vim-closetag'
+
+
 " LSP include for ros
 "Plug 'taketwo/vim-ros'
 
@@ -86,8 +93,9 @@ au BufNewFile *.py,*.pyw,*.c,*.h,*.cpp set fileformat=unix
 
 " Set the default file encoding to UTF-8:
 set encoding=utf-8
-set fenc=utf-8
 set termencoding=utf-8
+autocmd BufReadPre,BufNewFile * setlocal fenc=utf-8
+
 
 " make backspaces more powerfull
 set backspace=indent,eol,start
@@ -122,7 +130,7 @@ au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
 " Note: Don't use "'" for shit, it causes delay when programming
 
 " Centerpad using the lua function
-nnoremap <silent> ,z <cmd>lua require'centerpad'.toggle { leftpad = 80, rightpad = 40}<cr>
+nnoremap <silent> `z <cmd>lua require'centerpad'.toggle { leftpad = 80, rightpad = 40}<cr>
 
 " Turn on and off spell with F8
 nnoremap <silent> <F8> :set nospell!<cr>
@@ -131,8 +139,8 @@ inoremap <silent> <F8> <C-O>:set nospell!<cr>
 " install en_us
 "set spell spelllang=en_us
 
-nnoremap <silent> ,f :NvimTreeToggle<cr>
-inoremap <silent> ,f :NvimTreeToggle<cr>
+nnoremap <silent> `f :NvimTreeToggle<cr>
+inoremap <silent> `f :NvimTreeToggle<cr>
 
 "---------------------- Lightline config
 set laststatus=2
@@ -146,8 +154,40 @@ let g:lightline = {
       \ },
       \ }
 
+"------------------- Spelling
+" Hover over mispelled word and type : z=
+set dictionary+=/usr/share/dict/words
+
+
+function! SpellSuggestComplete(findstart, base)
+  if a:findstart
+    " Locate the start of the word
+    let line = getline('.')
+    let start = col('.') - 1
+    while start > 0 && !isspace(line[start - 1])
+      let start -= 1
+    endwhile
+    return start
+  else
+    " Find spelling suggestions for the base
+    let suggestions = split(spellbadword(a:base)[1], '\n')
+    return filter(suggestions, {_, v -> v != a:base})
+  endif
+endfunction
+
+autocmd FileType * setlocal omnifunc=SpellSuggestComplete
+
+
+"------------------- Closing
+let g:closetag_html_style = 1
+let g:closetag_filenames = '*.html,*.xhtml,*.phtml'
+let g:closetag_auto_close = 1
+
 "------------------- Markdown stuff 
 lua vim.g.markdown_recommended_style = 1
+
+"------------------- Enable nvim-autopairs
+lua require('nvim-autopairs').setup()
 
 
 "------------------- ROS Stuff
