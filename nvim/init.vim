@@ -1,13 +1,8 @@
-"V12: Setup spell check, options for markdown files  
-"
 " Notes: 
-" - Had problems with Python recognition on Windows, make sure to do pip
-" install neovim
-" - Changed monochrome version
 " - To paste in command mode: Shift + r, Shift + =  
 " - Block insert: cntrl + v, down the line, :s/^/inserted text
 
-let &path.="src/include,/usr/include/AL,"	" list of dirctories to look for file
+let &path.="src/include,/usr/include/AL,"    " list of directories to look for file
 set nocompatible              " required
 filetype off                  " required
 
@@ -23,124 +18,54 @@ autocmd VimEnter * if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
 \| endif
 
 call plug#begin()
-" aligning
+
+" Plugins
 Plug 'junegunn/vim-easy-align'
-
-" Fold blocks of text
 Plug 'tmhedberg/SimpylFold'
-
-" Status bar
 Plug 'itchyny/lightline.vim'
-
-" Monochrome theme
 Plug 'fxn/vim-monochrome'
-
-" :Centerpad to center a signle buffer
 Plug 'smithbm2316/centerpad.nvim'
-
-" LSP manage
 Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
-
-" NVIM language server protocol
-" Must go after mason
 Plug 'neovim/nvim-lspconfig'
-
-" File tree
-Plug 'nvim-tree/nvim-tree.lua'
-
-" Auto closing
 Plug 'windwp/nvim-autopairs'
-
-" HTML closing
 Plug 'alvan/vim-closetag'
+Plug 'rhysd/vim-clang-format'
+Plug 'Chiel92/vim-autoformat'
+Plug 'nvim-tree/nvim-tree.lua', { 'commit': '9c97e6449b0b0269bd44e1fd4857184dfa57bb4c'}
 
-
-" LSP include for ros
-"Plug 'taketwo/vim-ros'
-
-" Initialize plugin system
-" - Automatically executes `filetype plugin indent on` and `syntax enable`.
 call plug#end()
-" You can revert the settings after the call like so:
-"   filetype indent off   " Disable file-type-specific indentation
-"   syntax off            " Disable syntax highlighting
 
-
-"------------------- Gen. Settings 
-" File detection tuff
+"-------------------- General
 filetype on
-filetype plugin indent on    " load perfile indent guidlines
-" Numbered lines
-set nu
 
-" for windows clipboard pasteign and yanking
-" on xubuntu must install xclip to be able to copt to sys clipboard
-set clipboard^=unnamed,unnamedplus
+augroup GeneralFormatting
+  set fileformat=unix
+  set fenc=utf-8
+  set encoding=utf-8
+  set termencoding=utf-8
+  set splitright
+  set textwidth=120
+  set tabstop=2
+	set t_Co=256 " enable colors in terminal
+	colorscheme monochrome
+	set background=dark
+	set nu
+augroup END
 
-" colored termianl
-set t_Co=256 " enable colors in terminal
-
-" Enable syntax highlighting
-"syntax on
-
-" Color scheme settigns
-colorscheme monochrome
-set background=dark
-
-" Use UNIX (\n) line endings.
-au BufNewFile *.py,*.pyw,*.c,*.h,*.cpp set fileformat=unix
-
-" Set the default file encoding to UTF-8:
-set encoding=utf-8
-set termencoding=utf-8
-autocmd BufReadPre,BufNewFile * setlocal fenc=utf-8
-
-
-" make backspaces more powerfull
-set backspace=indent,eol,start
-
-" Enable folding
-set foldmethod=indent
-set foldlevel=99
-
-"use space to open folds
-nnoremap <space> za
-
-" Change highlighting of cursor line when entering/leaving Insert Mode
-set cursorline
-highlight CursorLine cterm=NONE ctermfg=NONE ctermbg=233 guifg=NONE guibg=#121212
-autocmd InsertEnter * highlight CursorLine cterm=NONE ctermfg=NONE ctermbg=234 guifg=NONE guibg=#1c1c1c
-autocmd InsertLeave * highlight CursorLine cterm=NONE ctermfg=NONE ctermbg=233 guifg=NONE guibg=#121212
-
-set splitright
-
-" wrap lines at 120 chars. 80 is somewaht antiquated with nowadays displays.
-set textwidth=120
-
-" configure tabwidth and insert spaces instead of tabs
-"set tabstop=4        " tab width is 4 spaces
-"set shiftwidth=4     " indent also with 4 spaces
-"set expandtab        " expand tabs to spaces
-
-" Make trailing whitespace be flagged as bad.
-au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
-
-"---------------------- Keybinding
-" Note: Don't use "'" for shit, it causes delay when programming
-
-" Centerpad using the lua function
-nnoremap <silent> `z <cmd>lua require'centerpad'.toggle { leftpad = 80, rightpad = 40}<cr>
-
-" Turn on and off spell with F8
-nnoremap <silent> <F8> :set nospell!<cr>
-inoremap <silent> <F8> <C-O>:set nospell!<cr>
-
-" install en_us
-"set spell spelllang=en_us
-
-nnoremap <silent> `f :NvimTreeToggle<cr>
-inoremap <silent> `f :NvimTreeToggle<cr>
+augroup GeneralSettings
+	set clipboard^=unnamed,unnamedplus
+	autocmd BufNewFile,BufRead * match BadWhitespace /\s\+$/
+  set backspace=indent,eol,start
+	" Folding settings
+	set foldmethod=indent
+	set foldlevel=99
+	" Cursor line highlighting
+	set cursorline
+	highlight CursorLine cterm=NONE ctermfg=NONE ctermbg=233 guifg=NONE guibg=#121212
+	autocmd InsertEnter * highlight CursorLine cterm=NONE ctermfg=NONE ctermbg=234 guifg=NONE guibg=#1c1c1c
+	autocmd InsertLeave * highlight CursorLine cterm=NONE ctermfg=NONE ctermbg=233 guifg=NONE guibg=#121212
+augroup END
 
 "---------------------- Lightline config
 set laststatus=2
@@ -155,13 +80,10 @@ let g:lightline = {
       \ }
 
 "------------------- Spelling
-" Hover over mispelled word and type : z=
 set dictionary+=/usr/share/dict/words
-
 
 function! SpellSuggestComplete(findstart, base)
   if a:findstart
-    " Locate the start of the word
     let line = getline('.')
     let start = col('.') - 1
     while start > 0 && !isspace(line[start - 1])
@@ -169,7 +91,6 @@ function! SpellSuggestComplete(findstart, base)
     endwhile
     return start
   else
-    " Find spelling suggestions for the base
     let suggestions = split(spellbadword(a:base)[1], '\n')
     return filter(suggestions, {_, v -> v != a:base})
   endif
@@ -177,6 +98,24 @@ endfunction
 
 autocmd FileType * setlocal omnifunc=SpellSuggestComplete
 
+" <leader> == \
+"------------------- Key bindings
+augroup KeyBindings
+	nnoremap <space> za 
+	nnoremap <silent> `z <cmd>lua require'centerpad'.toggle { leftpad = 80, rightpad = 40}<cr>
+	" spelling stuff
+	nnoremap <silent> <F8> :set nospell!<cr>
+	inoremap <silent> <F8> <C-O>:set nospell!<cr>
+	" file tree
+	nnoremap <silent> `f :NvimTreeToggle<cr>
+	" remove white space
+	nnoremap <silent> <leader>rs :let _s=@/ <Bar> :%s/\s\+$//e <Bar> :let @/=_s <Bar> :nohl <Bar> :unlet _s <CR>
+	"see kee bindings
+	nnoremap <leader>k :echo system("sed -n '101,110p' ~/.config/nvim/init.vim")<CR>
+	" Execute file with python <F9>
+	autocmd FileType python map <buffer> <F9> :w<CR>:exec '!python3' shellescape(@%, 1)<CR>
+	autocmd FileType python imap <buffer> <F9> <esc>:w<CR>:exec '!python3' shellescape(@%, 1)<CR>
+augroup END
 
 "------------------- Closing
 let g:closetag_html_style = 1
@@ -189,58 +128,36 @@ lua vim.g.markdown_recommended_style = 1
 "------------------- Enable nvim-autopairs
 lua require('nvim-autopairs').setup()
 
-
 "------------------- ROS Stuff
-autocmd BufRead,BufNewFile *.launch setfiletype roslaunch
-
-" https://superuser.com/questions/632657/how-to-setup-vim-to-edit-both-makefile-and-normal-code-files-with-two-different
-" fixed indentation should be OK for XML and CSS. People have fast internet
-" anyway. Indentation set to 2.
-autocmd FileType html,xhtml,css,xml,xslt set shiftwidth=2 softtabstop=2
-
-" two space indentation for some files
-autocmd FileType vim,lua,nginx set shiftwidth=2 softtabstop=2
-
-" add completion for XML
-autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
-
-"------------------- C stuff 
-" Filetype detection
-augroup project
-  autocmd!
-  autocmd BufRead,BufNewFile *.h,*.c set filetype=c.doxygen
+augroup ROSSettings
+  autocmd BufRead,BufNewFile *.launch setfiletype roslaunch
+  autocmd FileType html,xhtml,css,xml,xslt,vim,lua,nginx set shiftwidth=2 softtabstop=2
 augroup END
 
-au FileType c,c++ set showmatch " show matching brackets
+"------------------- C stuff 
 
-autocmd BufNewFile,BufRead *.c,*.cpp,*.h,*.hpp set comments=sl:/*,mb:\ *,elx:\ */
-
-autocmd BufNewFile,BufRead *.c,*.cpp,*.h,*.hpp set smartindent
-
+augroup CGroup
+  autocmd BufNewFile,BufRead *.c,*.cpp,*.cc,*.h,*.hpp,*.ino setlocal tabstop=2 shiftwidth=2 expandtab | 
+		setlocal comments=sl:/*,mb:\ *,elx:\ */ | 
+		setlocal smartindent | 
+		setlocal showmatch |
+		autocmd BufNewFile,BufRead *.ino set filetype=cpp |
+		let g:clang_format#enable_auto = 1 |
+		let g:clang_format#style = 'google'
+augroup END
 
 "------------------ Start Python stuff
-" Execute file with pyhton <F9>
-autocmd FileType python map <buffer> <F9> :w<CR>:exec '!python3' shellescape(@%, 1)<CR>
-autocmd FileType python imap <buffer> <F9> <esc>:w<CR>:exec '!python3' shellescape(@%, 1)<CR>
 
-" Number of spaces that a pre-existing tab is equal to.
-" au BufRead,BufNewFile *py,*pyw,*.c,*.h set tabstop=4
+augroup PythonGroup
+  autocmd BufRead,BufNewFile *.py,*.pyw setlocal tabstop=4 shiftwidth=4 expandtab |
+		setlocal autoindent | 
+		setlocal foldmethod=indent |
+   	let b:autoformat_autoindent=1 |
+		let b:autoformat_remove_trailing_spaces=0 |
+		let b:autoformat_formatter='yapf' |
+		let b:autoformat_options='--style google'
+augroup END
 
-" Use the below highlight group when displaying bad whitespace is desired.
-highlight BadWhitespace ctermbg=red guibg=red
-
-" Display tabs at the beginning of a line in Python mode as bad.
-au BufRead,BufNewFile *.py,*.pyw match BadWhitespace /^\t\+/
-
-
-"set colorcolumn=110
-"highlight ColorColumn ctermbg=darkgray
-
-" Keep indentation level from previous line:
-autocmd FileType python set autoindent
-
-"Folding based on indentation:
-autocmd FileType python set foldmethod=indent
 
 "------------------ Lua Based Configs
 lua <<EOF
@@ -253,7 +170,7 @@ lua <<EOF
 -- make sure: sudo apt install python3.x-venv
 require("mason").setup()
 require("mason-lspconfig").setup({
-    ensure_installed = { "pylsp", "clangd", "marksman", "lemminx", "cmake" }
+    ensure_installed = { "pylsp", "marksman", "lemminx", "cmake", "clangd"}
 })
 
 -- Mappings.
@@ -290,14 +207,12 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
 end
 
+
+-- You can also add additional LSP servers and configuration for other languages as needed
+
 local lsp_flags = {
   -- This is the default in Nvim 0.7+
   debounce_text_changes = 150,
-}
-
-require('lspconfig')['clangd'].setup{
-    on_attach = on_attach,
-    flags = lsp_flags,
 }
 require('lspconfig')['lemminx'].setup{
     on_attach = on_attach,
